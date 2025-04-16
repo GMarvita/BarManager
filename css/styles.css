@@ -1,0 +1,145 @@
+/* ---------- ESTILOS GENERALES ---------- */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 15px rgba(83, 94, 94, 0.2);
+    
+  
+}
+.container-login {
+    height: 100vh;
+    background: linear-gradient(to right, rgba(255, 99, 132, 1) 50%, rgba(75, 192, 192, 1) 50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-login {
+    background: rgba(255, 255, 255, 0.85); /* Blanco con transparencia */
+    border: none;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(8px);
+    height: 450px;
+}
+
+.card-login h3 {
+    color: #131212; /* Color rosado llamativo */
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.card-login input {
+    background: rgba(255, 255, 255, 0.85);
+    color: #222;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 0.6rem;
+    transition: all 0.3s ease;
+}
+
+.card-login input:focus {
+    background: #fff;
+    border-color: #ff6384;
+    box-shadow: 0 0 5px rgba(255, 99, 132, 0.5);
+    outline: none;
+}
+
+.card-login input::placeholder {
+    color: #999;
+}
+
+.card-login .btn-primary {
+    background: rgba(255, 99, 132, 1);
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+.card-login .btn-primary:hover {
+    background: rgba(75, 192, 192, 1);
+}
+
+.card-login a {
+    color: #000000;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.card-login a:hover {
+    text-decoration: underline;
+}
+
+.nav-link:hover {
+    background-color: #e6e9ec;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+/* ---------- SIDEBAR (PANEL LATERAL IZQUIERDO) ---------- */
+.sidebar {
+    position: fixed; /* Fija el panel en la pantalla */
+    top: 0;
+    left: 0;
+    width: 250px; /* Ancho del panel */
+    height: 100vh; /* Ocupa toda la altura de la pantalla */
+    z-index: 1050; /* Prioridad visual mayor que el header */   
+}
+
+
+
+/* ---------- HEADER (ENCABEZADO SUPERIOR) ---------- */
+.header {
+    position: fixed; /* Fija el header en la parte superior */
+    top: 0;
+    left: 250px; /* Desplaza el header a la derecha del panel */
+    width: calc(100vw - 250px); /* Asegura que el ancho sea correcto */
+    height: 60px; /* Altura del header, un poco mayor para mejor apariencia */
+    display: flex;
+    justify-content: flex-end; /* Mueve el contenido hacia la derecha */
+    align-items: center; /* Centrado vertical */
+    padding: 0 25px; /* Espaciado interno más amplio */
+    background-color: #212529; /* Color oscuro (bg-dark) */
+    color: white; /* Texto blanco */
+    z-index: 1000; /* Prioridad visual mayor que el sidebar */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada para separación */
+    transition: all 0.3s ease; /* Transición suave para cambios de estilo */
+}
+
+/* Círculo con la inicial del usuario */
+.user-initial {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    background-color: rgb(75, 192, 192, 1) ;
+    color: white;
+    text-align: center;
+    line-height: 35px; /* Centrar la letra */
+    border-radius: 50%; /* Hacerlo circular */
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+
+/* ---------- CONTENIDO PRINCIPAL ---------- */
+#page-content-wrapper {
+    margin-top: 50px;
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    
+}
+
+.container-fluid {
+    padding: 40px; /* Espaciado interno */
+    
+    width: 100%;
+    height: 100%;
+}
+
+
+
+
+
+
