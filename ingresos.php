@@ -1,31 +1,24 @@
 <?php
-include 'bd_conexion.php'; // Conectar a la BD
-var_dump($_SESSION); // Verificar si la sesión está activa
+// Iniciar sesión si aún no está iniciada
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Verificar si el usuario ha iniciado sesión
+include 'bd_conexion.php'; // Conectar a la BD
 $fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : '';
 $fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : '';
 
+// Responder a petición AJAX
 if (isset($_GET['ajax'])) {
     $query = "SELECT * FROM ingresos";
-
-    // Usando sentencias preparadas para evitar SQL Injection
     if (!empty($fecha_inicio) && !empty($fecha_fin)) {
-        $query .= " WHERE Fecha BETWEEN ? AND ?";
-        $stmt = $conexion->prepare($query);
-        $stmt->bind_param("ss", $fecha_inicio, $fecha_fin);
-    } else {
-        $stmt = $conexion->prepare($query);
+        $query .= " WHERE Fecha BETWEEN '$fecha_inicio' AND '$fecha_fin'";
     }
-
-    $stmt->execute();
-    $resultado = $stmt->get_result();
-
+    $resultado = $conexion->query($query);
     $ingresos = [];
     while ($row = $resultado->fetch_assoc()) {
         $ingresos[] = $row;
     }
-
     echo json_encode($ingresos);
     exit();
 }
@@ -33,65 +26,55 @@ if (isset($_GET['ajax'])) {
 // Eliminar ingreso
 if ($_SERVER["REQUEST_METHOD"] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'delete') {
     $id = $conexion->real_escape_string($_POST['id']);
-
-    // Usando sentencia preparada para eliminar
-    $query = "DELETE FROM ingresos WHERE ID_Ingreso = ?";
-    $stmt = $conexion->prepare($query);
-    $stmt->bind_param("i", $id);
-
-    if ($stmt->execute()) {
-        echo json_encode(["status" => "success"]);
-    } else {
-        echo json_encode(["status" => "error"]);
-    }
+    $query = "DELETE FROM ingresos WHERE ID_Ingreso = '$id'";
+    echo ($conexion->query($query) === TRUE) ? "success" : "error";
     exit();
 }
 
-// Insertar ingreso
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
+// Añadir ingreso
+if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['action'])) {
     if (isset($_POST["descripcion"], $_POST["cantidad"], $_POST["fecha"])) {
         $descripcion = $conexion->real_escape_string($_POST["descripcion"]);
         $cantidad = $conexion->real_escape_string($_POST["cantidad"]);
         $fecha = $conexion->real_escape_string($_POST["fecha"]);
-        if (!isset($_SESSION['id_admin'])) {
-            echo json_encode(["status" => "error", "message" => "No estás autenticado"]);
-            exit;
-        }
-        $id_admin = $_SESSION['id_admin'];
-        
 
-        // Realizar la inserción en la base de datos con sentencia preparada
-        $query = "INSERT INTO ingresos (Descripcion, Cantidad, Fecha, ID_Admin) VALUES (?, ?, ?, ?)";
-        $stmt = $conexion->prepare($query);
-        $stmt->bind_param("sdsi", $descripcion, $cantidad, $fecha, $id_admin);
-
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success"]);
+        // Verifica si hay sesión activa
+        if (isset($_SESSION['id_admin'])) {
+            $id_admin = $_SESSION['id_admin'];
+            $query_insert = "INSERT INTO ingresos (Descripcion, Cantidad, Fecha, ID_Admin) 
+                             VALUES ('$descripcion', '$cantidad', '$fecha', '$id_admin')";
+            echo ($conexion->query($query_insert) === TRUE) ? "success" : "Error al insertar: " . $conexion->error;
         } else {
-            echo json_encode(["status" => "error"]);
+            echo "No hay sesión activa.";
         }
     } else {
-        echo json_encode(["status" => "error", "message" => "Faltan datos en el formulario"]);
+        echo "Faltan datos en el formulario.";
     }
-    exit;
+    exit();
 }
+
+
 
 ?>
 
-
-
 <!-- Botones añadir y exportar -->
 <div class="container-fluid d-flex flex-column">
+    <!-- Título de la página -->
+    <h5 class="text-secondary d-flex align-items-center fs-6">
+        <i class="fa-solid fa-money-bill me-2"></i>Ingresos
+    </h5>
+    <hr>
     <div class="d-flex flex-wrap justify-content-end">
         <button class="btn btn-primary me-2 mb-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addIngresoModal">
-            <i class="fa fa-plus me-2"></i>Nuevo
+            <i class="fa fa-plus me-2"></i>Añadir
         </button>
         <form action="exportar.php" method="post">
+            <input type="hidden" name="type" value="ingresos">
             <button type="submit" class="btn btn-dark mb-2 shadow-sm">
-                <i class="fa fa-download me-2"></i>Exportar
+                <i class="fa fa-download me-2"></i>Descargar
             </button>
         </form>
+
     </div>
 
     <!-- Filtros de fecha -->
@@ -112,10 +95,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <!-- Tabla de Ingresos -->
     <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover shadow-sm rounded mt-3">
-            <thead class="table-secundary">
+            <thead class="table-primary">
                 <tr>
                     <th>ID</th>
-                    <th>Descripción</th>
+                    <th>Descripcion</th>
                     <th>Cantidad</th>
                     <th>Fecha</th>
                     <th>Acciones</th>

@@ -62,16 +62,9 @@ $action = isset($_GET['action']) ? $_GET['action'] : ''; // Acción dentro de va
                 include 'gastos.php';
             } elseif ($page == 'categorias') {
                 include 'categorias.php';
-            } elseif ($page == 'report_employee') {
-                include 'report_employee.php';
-            } elseif ($page == 'attendance') {
-                include 'attendance.php';
-            } elseif ($page == 'add_leave') {
-                include 'add_leave.php';
-            } elseif ($page == 'report_leave') {
-                include 'report_leave.php';
-            } elseif ($page == 'vacation_approval') {
-                include 'vacation_approval.php';
+            }
+            elseif ($page == 'perfil') {
+                include 'perfil.php';
             }
             ?>
         </div>

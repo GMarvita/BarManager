@@ -1,44 +1,37 @@
 <?php
 session_start();
+include 'bd_conexion.php'; 
 
-include 'bd_conexion.php'; // Archivo que contiene la conexión a la base de datos
-
-// Comprobar conexión
 if ($conexion->connect_error) {
     die("Conexión fallida: " . $conexion->connect_error);
 }
-
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Verificar que los campos del formulario existen
     $usuario = isset($_POST['email']) ? trim($_POST['email']) : '';
     $contraseña = isset($_POST['password']) ? $_POST['password'] : '';
 
     if (!empty($usuario) && !empty($contraseña)) {
-        // Consulta SQL para buscar al usuario por el correo electrónico
-        $query = "SELECT * FROM administrador WHERE Email = ? AND Contraseña = ?";
-        
-        // Preparar la consulta
+        // Buscar solo por email
+        $query = "SELECT * FROM administrador WHERE Email = ?";
         $stmt = $conexion->prepare($query);
-        $stmt->bind_param("ss", $usuario, $contraseña);
+        $stmt->bind_param("s", $usuario);
         $stmt->execute();
-
-        // Obtener el resultado
         $resultado = $stmt->get_result();
 
         if ($resultado->num_rows > 0) {
             $user = $resultado->fetch_assoc();
-            
-            
-            // Almacenar información del usuario en la sesión
-            $_SESSION['email'] = $user['Email'];
-            $_SESSION['id_admin'] = $user['ID_Admin'];  // Guardamos el ID_Admin en la sesión
-            $_SESSION['nombre'] = $user['Nombre']; // Guarda el nombre
+            // Verificar la contraseña con password_verify
+            if (password_verify($contraseña, $user['Contraseña'])) {
+                $_SESSION['email'] = $user['Email'];
+                $_SESSION['id_admin'] = $user['ID_Admin'];
+                $_SESSION['nombre'] = $user['Nombre'];
 
-            // Redirigir al dashboard
-            header("Location: dashboard.php");
-            exit();
+                header("Location: dashboard.php");
+                exit();
+            } else {
+                $error = "Contraseña incorrecta.";
+            }
         } else {
             $error = "Usuario no encontrado.";
         }
@@ -48,12 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Mostrar el mensaje de error si existe
 if (isset($_SESSION['error'])) {
     $error = $_SESSION['error'];
     unset($_SESSION['error']);
 }
 ?>
+<!-- Aquí sigue tu HTML con el formulario -->
+
 
 <div class="container-login w-100">
     <div class="row justify-content-center w-100 mx-0">

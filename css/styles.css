@@ -121,6 +121,19 @@ body {
     font-weight: bold;
     margin-right: 10px;
 }
+.dropdown-item {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-item:active {
+    background-color: rgba(214, 214, 214, 0.1) !important; /* color de hover */
+    color: black !important;
+    border-radius: 0 !important; /* evita esquinas redondeadas parciales */
+}
 
 
 /* ---------- CONTENIDO PRINCIPAL ---------- */
