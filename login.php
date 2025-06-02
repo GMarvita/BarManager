@@ -1,7 +1,6 @@
 <?php
 session_start();
 include 'bd_conexion.php'; 
-
 if ($conexion->connect_error) {
     die("Conexión fallida: " . $conexion->connect_error);
 }
@@ -46,7 +45,6 @@ if (isset($_SESSION['error'])) {
     unset($_SESSION['error']);
 }
 ?>
-<!-- Aquí sigue tu HTML con el formulario -->
 
 
 <div class="container-login w-100">

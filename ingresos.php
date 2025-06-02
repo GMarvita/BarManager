@@ -1,44 +1,65 @@
 <?php
+
 // Iniciar sesión si aún no está iniciada
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
 include 'bd_conexion.php'; // Conectar a la BD
+
 $fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : '';
 $fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : '';
 
-// Responder a petición AJAX
+// Petición AJAX para obtener ingresos con filtro por fecha
 if (isset($_GET['ajax'])) {
     $query = "SELECT * FROM ingresos";
     if (!empty($fecha_inicio) && !empty($fecha_fin)) {
         $query .= " WHERE Fecha BETWEEN '$fecha_inicio' AND '$fecha_fin'";
     }
+
     $resultado = $conexion->query($query);
     $ingresos = [];
     while ($row = $resultado->fetch_assoc()) {
         $ingresos[] = $row;
     }
+
     echo json_encode($ingresos);
     exit();
 }
 
-// Eliminar ingreso
-if ($_SERVER["REQUEST_METHOD"] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'delete') {
-    $id = $conexion->real_escape_string($_POST['id']);
-    $query = "DELETE FROM ingresos WHERE ID_Ingreso = '$id'";
-    echo ($conexion->query($query) === TRUE) ? "success" : "error";
-    exit();
-}
+// Acciones por método POST: insertar, actualizar, eliminar
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-// Añadir ingreso
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['action'])) {
+    $accion = isset($_POST['action']) ? $_POST['action'] : '';
+
+    // Eliminar ingreso
+    if ($accion === 'delete') {
+        $id = $conexion->real_escape_string($_POST['id']);
+        $query = "DELETE FROM ingresos WHERE ID_Ingreso = '$id'";
+        echo ($conexion->query($query) === TRUE) ? "success" : "error";
+        exit();
+    }
+
+    // Actualizar ingreso
+    if ($accion === 'update') {
+        $id = $_POST['id'];
+        $descripcion = $_POST['descripcion'];
+        $cantidad = $_POST['cantidad'];
+        $fecha = $_POST['fecha'];
+
+        $stmt = $conexion->prepare("UPDATE ingresos SET Descripcion = ?, Cantidad = ?, Fecha = ? WHERE ID_Ingreso = ?");
+        $stmt->bind_param("sdsi", $descripcion, $cantidad, $fecha, $id);
+
+        echo ($stmt->execute()) ? "success" : "error";
+        exit();
+    }
+
+    // Añadir ingreso (no se incluye action en este caso)
     if (isset($_POST["descripcion"], $_POST["cantidad"], $_POST["fecha"])) {
         $descripcion = $conexion->real_escape_string($_POST["descripcion"]);
         $cantidad = $conexion->real_escape_string($_POST["cantidad"]);
         $fecha = $conexion->real_escape_string($_POST["fecha"]);
 
-        // Verifica si hay sesión activa
         if (isset($_SESSION['id_admin'])) {
             $id_admin = $_SESSION['id_admin'];
             $query_insert = "INSERT INTO ingresos (Descripcion, Cantidad, Fecha, ID_Admin) 
@@ -47,12 +68,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['action'])) {
         } else {
             echo "No hay sesión activa.";
         }
-    } else {
-        echo "Faltan datos en el formulario.";
+        exit();
     }
+
+    // Si no se cumple ninguna condición
+    echo "Acción no válida o faltan datos.";
     exit();
 }
-
 
 
 ?>
@@ -81,11 +103,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['action'])) {
     <div class="row mb-3">
         <div class="col-auto">
             <label for="fechaInicio" class="form-label">Desde:</label>
-            <input type="date" class="form-control form-control-sm" id="fechaInicio">
+            <input type="date" class="form-control form-control-sm" name="fecha_inicio" id="fechaInicio" required>
         </div>
         <div class="col-auto">
             <label for="fechaFin" class="form-label">Hasta:</label>
-            <input type="date" class="form-control form-control-sm" id="fechaFin">
+            <input type="date" class="form-control form-control-sm" name="fecha_fin" id="fechaFin" required>
         </div>
         <div class="col-auto d-flex align-items-end">
             <button class="btn btn-sm btn-dark shadow-sm" id="filtrarIngresos"><i class="fa fa-search"></i></button>
@@ -138,6 +160,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['action'])) {
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary shadow-sm">Guardar</button>
+                    <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal para editar ingreso -->
+<div class="modal fade" id="editIngresoModal" tabindex="-1" aria-labelledby="editIngresoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header text-white bg-primary">
+                <h5 class="modal-title" id="editIngresoModalLabel">Editar Ingreso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="editIngresoForm" method="POST" action="">
+                <div class="modal-body">
+                    <input type="hidden" id="editIdIngreso" name="id">
+                    <div class="mb-3">
+                        <label for="editDescripcion" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="editDescripcion" name="descripcion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCantidad" class="form-label">Cantidad</label>
+                        <input type="number" step="0.01" class="form-control" id="editCantidad" name="cantidad" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editFecha" class="form-label">Fecha</label>
+                        <input type="date" class="form-control" id="editFecha" name="fecha" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary shadow-sm">Guardar </button>
                     <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </form>

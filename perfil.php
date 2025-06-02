@@ -93,7 +93,6 @@ if ($result->num_rows === 1) {
                         <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($usuario['Email']); ?>" required>
                     </div>
                 </div>
-
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Nueva Contraseña <span class="text-muted">(opcional)</span></label>
                     <div class="input-group">
@@ -104,6 +103,7 @@ if ($result->num_rows === 1) {
                         </button>
                     </div>
                 </div>
+
 
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-primary px-4">
@@ -117,4 +117,3 @@ if ($result->num_rows === 1) {
         </div>
     </div>
 </main>
-

@@ -55,6 +55,53 @@ $(document).ready(function () {
       }
     });
   }
+// Abrir modal para editar ingreso
+$(document).on("click", ".editarIngreso", function () {
+  let fila = $(this).closest("tr");
+
+  let id = fila.data("id");
+  let descripcion = fila.find("td:eq(1)").text();
+  let cantidad = fila.find("td:eq(2)").text().replace("€", "").trim();
+  let fecha = fila.find("td:eq(3)").text(); // dd-mm-yyyy
+
+  // Convertir fecha a yyyy-mm-dd para el input
+  let partes = fecha.split("-");
+  let fechaInput = `${partes[2]}-${partes[1]}-${partes[0]}`;
+
+  // Rellenar el formulario del modal
+  $("#editIdIngreso").val(id);
+  $("#editDescripcion").val(descripcion);
+  $("#editCantidad").val(cantidad);
+  $("#editFecha").val(fechaInput);
+
+  // Mostrar el modal
+  $("#editIngresoModal").modal("show");
+});
+
+// Enviar formulario de edición
+$("#editIngresoForm").submit(function (e) {
+  e.preventDefault();
+
+  let datos = $(this).serialize() + "&action=update";
+
+  $.ajax({
+    url: "ingresos.php",
+    method: "POST",
+    data: datos,
+    success: function (respuesta) {
+      if (respuesta.trim() === "success") {
+        alert("Ingreso actualizado correctamente.");
+        $("#editIngresoModal").modal("hide");
+        cargarIngresos(); // Recargar la tabla
+      } else {
+        alert("Error al actualizar el ingreso.");
+      }
+    },
+    error: function () {
+      alert("Error en la solicitud.");
+    }
+  });
+});
 
   // Eliminar ingreso
   $(document).on("click", ".eliminarIngreso", function () {
@@ -164,6 +211,53 @@ $(document).ready(function () {
     });
   }
   
+// Mostrar el modal con los datos del gasto a editar
+$(document).on("click", ".editarGasto", function () {
+  const fila = $(this).closest("tr");
+  const id = fila.data("id");
+  const categoria = fila.find("td:eq(1)").text(); // Nombre categoría
+  const cantidad = parseFloat(fila.find("td:eq(2)").text()); // Cantidad (con €)
+  const fecha = fila.find("td:eq(3)").text(); // dd-mm-yyyy
+
+  // Convertir fecha a yyyy-mm-dd para el input type="date"
+  const partesFecha = fecha.split("-");
+  const fechaFormateada = `${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`;
+
+  // Asignar valores al formulario
+  $("#editID_Gasto").val(id);
+  $("#editCategoria option").each(function () {
+    if ($(this).text() === categoria.trim()) {
+      $(this).prop("selected", true);
+    }
+  });
+  $("#editCantidad").val(cantidad);
+  $("#editFecha").val(fechaFormateada);
+
+  // Mostrar modal
+  $("#editGastoModal").modal("show");
+});
+
+// Enviar el formulario de edición
+$("#editGastoForm").submit(function (e) {
+  e.preventDefault();
+
+  const datos = $(this).serialize() + "&action=update";
+
+  $.ajax({
+    url: "gastos.php",
+    type: "POST",
+    data: datos,
+    success: function (respuesta) {
+      if (respuesta.trim() === "success") {
+        alert("Gasto actualizado correctamente.");
+        $("#editGastoModal").modal("hide");
+        cargarGastos();
+      } else {
+        alert("Error al actualizar el gasto.");
+      }
+    }
+  });
+});
 
   // Eliminar gasto
   $(document).on("click", ".eliminarGasto", function () {
@@ -213,6 +307,9 @@ $(document).ready(function () {
 
 });
 
+
+
+// Script para gestionar las categorías
 $(document).ready(function () {
   // Función para cargar las categorías
   cargarCategorias();
@@ -251,26 +348,51 @@ $(document).ready(function () {
       }
     });
   }
+$("#addCategoriaForm").submit(function (e) {
+  e.preventDefault();
 
-  // Enviar el formulario de añadir categoría
-  $("#addCategoriaForm").submit(function (e) {
-    e.preventDefault(); // Evita el envío tradicional del formulario
+  let id = $("#id_categoria").val();
+  let nombre = $("#nombre").val();
+  let datos = {
+    nombre: nombre
+  };
 
-    $.ajax({
-      type: "POST",
-      url: "categorias.php",
-      data: $(this).serialize(),
-      success: function (response) {
-        if (response === "success") {
-          alert("Categoría guardada correctamente");
-          $("#addCategoriaModal").modal('hide'); // Cierra el modal después de guardar
-          cargarCategorias(); // Recarga las categorías en la tabla
-        } else {
-          alert("Error al guardar la categoría");
-        }
+  // Si hay ID, se trata de una edición
+  if (id) {
+    datos.action = "edit";
+    datos.id = id;
+  }
+
+  $.ajax({
+    type: "POST",
+    url: "categorias.php",
+    data: datos,
+    success: function (response) {
+      if (response === "success") {
+        alert(id ? "Categoría actualizada correctamente" : "Categoría guardada correctamente");
+        $("#addCategoriaModal").modal("hide");
+        cargarCategorias();
+      } else {
+        alert("Error al guardar los datos.");
       }
-    });
+    }
   });
+});
+
+// Abrir modal con datos para editar
+$(document).on("click", ".editarCategoria", function () {
+  let row = $(this).closest("tr");
+  let id = row.data("id");
+  let nombre = row.find("td:eq(0)").text();
+
+  // Rellenar el formulario con los datos
+  $("#id_categoria").val(id);
+  $("#nombre").val(nombre);
+  $("#addCategoriaModalLabel").text("Editar Categoría");
+
+  // Mostrar el modal
+  $("#addCategoriaModal").modal("show");
+});
 
   // Eliminar categoría
   $(document).on("click", ".eliminarCategoria", function () {
@@ -286,7 +408,7 @@ $(document).ready(function () {
             alert("Categoría eliminada correctamente.");
             cargarCategorias(); // Recargar la tabla después de eliminar
           } else {
-            alert("Error al eliminar la categoría.");
+            alert("No se puede eliminar esta categoría porque tiene gastos asociados.");
           }
         }
       });
@@ -299,6 +421,22 @@ $(document).ready(function () {
   });
 });
 
+//Mostrar y ocultar contraseña en el formulario de perfil
+
+$(document).ready(function() {
+  $('#togglePassword').click(function() {
+    const passwordInput = $('#nueva_contrasena');
+    const icon = $(this).find('i');
+
+    if (passwordInput.attr('type') === 'password') {
+      passwordInput.attr('type', 'text');
+      icon.removeClass('fa-eye').addClass('fa-eye-slash');
+    } else {
+      passwordInput.attr('type', 'password');
+      icon.removeClass('fa-eye-slash').addClass('fa-eye');
+    }
+  });
+});
 
 
   document.addEventListener("DOMContentLoaded", function () {

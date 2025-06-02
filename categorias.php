@@ -34,6 +34,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['action'])) {
     }
     exit();
 }
+// Comprobar si la solicitud es para editar una categoría
+if (isset($_POST['action']) && $_POST['action'] == 'edit' && isset($_POST['id']) && isset($_POST['nombre'])) {
+    $id = intval($_POST['id']);
+    $nombre = $conexion->real_escape_string($_POST['nombre']);
+
+    $query = "UPDATE categorias SET Nombre = '$nombre' WHERE ID_Categoria = $id";
+    if ($conexion->query($query)) {
+        echo "success";
+    } else {
+        echo "error";
+    }
+    exit();
+}
 
 // Comprobar si la solicitud es para eliminar una categoría
 if (isset($_POST['action']) && $_POST['action'] == 'delete' && isset($_POST['id'])) {
@@ -81,26 +94,27 @@ if (isset($_POST['action']) && $_POST['action'] == 'delete' && isset($_POST['id'
     </div>
 </div>
 
-<!-- Modal para añadir categoría -->
+<!-- Modal para añadir/editar categoría -->
 <div class="modal fade" id="addCategoriaModal" tabindex="-1" aria-labelledby="addCategoriaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header  text-white bg-primary">
-                <h5 class="modal-title" id="addCategoriaModalLabel">Añadir Categoría</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="addCategoriaForm" method="POST" action="">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre de la Categoría</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary shadow-sm">Guardar</button>
-                    <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </form>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header text-white bg-primary">
+        <h5 class="modal-title" id="addCategoriaModalLabel">Añadir Categoría</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="addCategoriaForm" method="POST">
+        <div class="modal-body">
+          <input type="hidden" name="id_categoria" id="id_categoria"> <!-- Campo oculto -->
+          <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre de la Categoría</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required>
+          </div>
         </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary shadow-sm">Guardar</button>
+          <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
